@@ -11,8 +11,13 @@ import { ConfigService } from '@nestjs/config';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 import ms, { StringValue } from 'ms';
-import { User } from 'src/generated/prisma/client';
+import { Role, User } from 'src/generated/prisma/client';
 
+interface JwtPayload {
+  sub: string;
+  email: string;
+  role: Role;
+}
 @Injectable()
 export class AuthService {
   constructor(
@@ -53,9 +58,73 @@ export class AuthService {
   }
 
   async refreshAccesstoken(incommingRefreshToken: string) {
+    if (!incommingRefreshToken) {
+      throw new UnauthorizedException(
+        'UNAUTHORIZED REQUEST: Invalid or Expired Token',
+      );
+    }
     try {
-      const decoded_token = this.jwtService.decode(incommingRefreshToken);
-    } catch (error) { }
+      const refreshSecret = this.configService.get<string>(
+        'JWT_REFRESH_TOKEN_SECRET',
+      );
+      if (!refreshSecret) {
+        throw new Error('JWT_REFRESH_TOKEN_SECRET is not configured');
+      }
+
+      const decoded_token = await this.jwtService.verifyAsync<JwtPayload>(
+        incommingRefreshToken,
+        { secret: refreshSecret },
+      );
+
+      if (!decoded_token)
+        throw new UnauthorizedException('Invalid or Expired Token');
+
+      const tokenRecord = await this.prisma.refreshToken.findFirst({
+        where: {
+          userId: decoded_token.sub,
+          revoked: false,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!tokenRecord) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
+      const isMatch = await this.verifyToken(
+        incommingRefreshToken,
+        tokenRecord.token,
+      );
+
+      if (!isMatch) {
+        throw new UnauthorizedException('Invalid or expired token');
+      }
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded_token.sub },
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User no longer exists');
+      }
+
+      await this.prisma.refreshToken.update({
+        where: { id: tokenRecord.id },
+        data: { revoked: true },
+      });
+
+      const { accessToken, refreshToken } = await this.generateTokens(user);
+      return { accessToken, refreshToken };
+    } catch (error) {
+      console.error(error);
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+  async logout(user_id: string) {
+    await this.prisma.refreshToken.deleteMany({ where: { userId: user_id } });
+    return { message: 'Logged out successfully' };
   }
 
   // HELPER METHODS
@@ -115,26 +184,6 @@ export class AuthService {
         userId,
         expiresAt,
       },
-    });
-  }
-
-  private async generateAccessToken(user: Pick<User, 'id' | 'email' | 'role'>) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
-
-    return this.jwtService.signAsync(payload, {
-      secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
-      expiresIn: this.configService.get('JWT_ACCESS_TOKEN_EXPIRES_IN') ?? '15m',
-    });
-  }
-
-  private async generateRefreshToken(
-    user: Pick<User, 'id' | 'email' | 'role'>,
-  ) {
-    const payload = { sub: user.id, email: user.email, role: user.role };
-
-    return this.jwtService.signAsync(payload, {
-      secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
-      expiresIn: this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN') ?? '7d',
     });
   }
 }
