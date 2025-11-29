@@ -23,6 +23,7 @@ import { RoleGuard } from 'src/auth/guards/role.guard';
 import { Roles } from 'src/auth/decorators/role.decorator';
 import { Role } from 'src/generated/prisma/enums';
 import { UpdateAssignedTaskStatusDto } from './dto/update-assigned-task-status.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
 
 interface RequestWithUser extends Request {
   user: {
@@ -33,7 +34,7 @@ interface RequestWithUser extends Request {
 
 @Controller('tasks')
 export class TaskController {
-  constructor(private readonly taskService: TaskService) {}
+  constructor(private readonly taskService: TaskService) { }
 
   // only admin can create tasks
   @Post()
@@ -51,27 +52,27 @@ export class TaskController {
   @HttpCode(200)
   assignTask(
     @Param(new ValidationPipe({ transform: true }))
-    params: {
-      taskId: string;
-      userId: string;
-    },
+    params: AssignTaskDto,
   ) {
     return this.taskService.assignTaskToUser({
       taskId: params.taskId,
-      assignedToUserId: params.userId,
+      assignedToUserId: params.assignedToUserId,
     });
   }
 
-  // only admin can update status of assigned tasks
   @Patch(':taskId/status')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  @Roles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   updateTaskStatus(
     @Param('taskId') taskid: string,
     @Body() data: UpdateAssignedTaskStatusDto,
+    @Req() req: RequestWithUser,
   ) {
-    return this.taskService.updateAssignedTaskStatus(taskid, data);
+    return this.taskService.updateAssignedTaskStatus(
+      taskid,
+      req.user.sub,
+      data,
+    );
   }
 
   @Get(':taskId/status')

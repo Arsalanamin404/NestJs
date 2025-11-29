@@ -1,7 +1,7 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -73,29 +73,21 @@ export class TaskService {
 
   async updateAssignedTaskStatus(
     taskId: string,
+    userId: string,
     data: UpdateAssignedTaskStatusDto,
   ) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: data.assignedToUserId },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const task = await this.prisma.task.findUnique({
-      where: { id: taskId },
+    const task = await this.prisma.task.findFirst({
+      where: {
+        id: taskId,
+        assignedToUserId: userId,
+      },
     });
 
     if (!task) {
-      throw new NotFoundException('Task not found');
+      throw new ForbiddenException('You are not allowed to update this task');
     }
 
-    if (task.assignedToUserId !== data.assignedToUserId) {
-      throw new UnauthorizedException(
-        'You are not authorized to update this task',
-      );
-    }
-    const isCompleted = data.status == Status.COMPLETED;
+    const isCompleted = data.status === Status.COMPLETED;
 
     const updated_task = await this.prisma.task.update({
       where: { id: taskId },
