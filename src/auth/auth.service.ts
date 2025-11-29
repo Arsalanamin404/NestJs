@@ -138,19 +138,6 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  async getUserById(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const { password, ...sanitizedUser } = user;
-    return sanitizedUser;
-  }
-
   // HELPER METHODS
   private async hashPassword(password: string) {
     return bcrypt.hash(password, 10);
