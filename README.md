@@ -1,209 +1,171 @@
-Task Management System API (NestJS + Prisma + JWT Auth)
+# Task Management System API
 
-A production-ready, scalable, and enterprise-grade backend application built using NestJS.
-This project includes end-to-end authentication, authorization, user management, role-based access, and a complete task management workflow.
+### **NestJS + Prisma + PostgreSQL + JWT Authentication**
 
+A production-ready, scalable, and enterprise-grade backend application
+built using **NestJS** and **Prisma ORM**.\
+This system includes robust authentication, role-based authorization,
+modular architecture, and a complete task workflow suitable for
+real-world organizations.
 
----
+------------------------------------------------------------------------
 
-Features
+## Features
 
-Authentication & Authorization
+### Authentication & Authorization
 
-Register, Login, Logout
+-   User Registration, Login & Logout\
+-   Access & Refresh Tokens\
+-   Secure Token Rotation\
+-   Role-Based Access (Admin, User)\
+-   Protected Routes using Guards\
+-   Password hashing with **bcrypt**
 
-Access and Refresh Tokens
+### Task Management
 
-Secure token rotation
+-   **Admin:** Create, update, assign, and delete tasks\
+-   **Users:** Update own task status\
+-   "My Tasks" & "All Tasks" endpoints\
+-   Strict DTO validation\
+-   Enum-based task statuses & roles
 
-Role-based access (Admin, User)
+### User Management
 
-Protected routes using Guards
+-   Fetch all users (**Admin only**)\
+-   Update user roles\
+-   `/users/me` profile endpoint\
+-   Account deletion
 
-Password hashing using bcrypt
+### Engineering & Production Practices
 
+-   Modular architecture\
+-   Global exception filters\
+-   Custom error responses\
+-   Request throttling (rate limiting)\
+-   Swagger/OpenAPI documentation\
+-   Strong TypeScript typings\
+-   Production-ready folder structure
 
-Task Management
+------------------------------------------------------------------------
 
-Admin can create, update, and delete tasks
+## ðŸ§° Tech Stack
 
-Admin can assign tasks to users
+  Layer            Technology
+  ---------------- -----------------------------------
+  Framework        **NestJS**
+  ORM              **Prisma**
+  Database         **PostgreSQL**
+  Authentication   **JWT (Access + Refresh Tokens)**
+  Validation       `class-validator`
+  Documentation    **Swagger/OpenAPI**
 
-Users can update their own task status
+------------------------------------------------------------------------
 
-Separate views for "My Tasks" and "All Tasks"
+## Project Structure
 
-Strict DTO validation and enums
+    src/
+      auth/
+      users/
+      tasks/
+      prisma/
+      main.ts
+      app.module.ts
 
+    prisma/
+      schema.prisma
+      migrations/
 
-User Management
+------------------------------------------------------------------------
 
-Fetch all users (Admin only)
+## Getting Started
 
-Update user roles
+### Clone the Repository
 
-User profile endpoint /users/me
-
-Account deletion
-
-
-Engineering Practices
-
-Modular architecture
-
-Global exception filters
-
-Custom error responses
-
-Request throttling (Rate limiting)
-
-Strong TypeScript typing
-
-Swagger/OpenAPI documentation
-
-Production-ready folder structure
-
-
-
----
-
-Tech Stack
-
-Layer	Technology
-
-Framework	NestJS
-ORM	Prisma
-Database	PostgreSQL
-Auth	JWT (Access + Refresh Tokens)
-Docs	Swagger/OpenAPI
-Validation	class-validator
-
-
-
----
-
-Project Structure
-
-src/
- ├── auth/
- ├── users/
- ├── tasks/
- ├── common/
- ├── prisma/
- ├── main.ts
- └── app.module.ts
-
-prisma/
- ├── schema.prisma
- └── migrations/
-
-
----
-
-Getting Started
-
-1. Clone the Repository
-
+``` bash
 git clone https://github.com/Arsalanamin404/TaskManagementSystem_API
 cd TaskManagementSystem_API
+```
 
-2. Install Dependencies
+### Install Dependencies
 
+``` bash
 npm install
+```
 
-3. Setup Environment Variables
+### Configure Environment Variables
 
-Create an .env file:
+Create a `.env` file at the project root:
 
+``` env
 DATABASE_URL="postgresql://<user>:<password>@localhost:5432/tasks"
 JWT_SECRET_ACCESS="your_access_secret"
 JWT_SECRET_REFRESH="your_refresh_secret"
 JWT_EXPIRES_IN="15m"
 JWT_REFRESH_EXPIRES_IN="7d"
+```
 
-4. Run Prisma Migrations
+### Run Database Migrations
 
+``` bash
 npx prisma migrate dev
+```
 
-5. Start the Development Server
+### Start Development Server
 
+``` bash
 npm run start:dev
+```
 
-Server runs at:
-http://localhost:3000
+Your server will be live at:\
+`**http://localhost:3000/api/v1**`
 
+------------------------------------------------------------------------
 
----
+## API Documentation
 
-API Documentation
+Swagger UI:\
+`**http://localhost:3000/api/v1/docs**`
 
-Swagger Documentation URL:
-http://localhost:3000/api
+------------------------------------------------------------------------
 
+## API Modules Overview
 
----
+### **Auth Module**
 
-API Modules Overview
+  Endpoint         Method   Description
+  ---------------- -------- ---------------------
+  /auth/register   POST     Register a new user
+  /auth/login      POST     User login
+  /auth/logout     POST     Logout
+  /auth/refresh    POST     Refresh token
 
-Auth Module
+### **User Module**
 
-Endpoint	Method	Description
+  Endpoint          Method   Description
+  ----------------- -------- ----------------------------
+  /users            GET      Get all users (Admin only)
+  /users/me         GET      Get logged-in user profile
+  /users/:id/role   PATCH    Update user role
 
-/auth/register	POST	Create new user
-/auth/login	POST	Login user
-/auth/logout	POST	Logout
-/auth/refresh	POST	Refresh token
+### **Task Module**
 
+  Endpoint     Method   Description
+  ------------ -------- ----------------------------
+  /tasks       POST     Create task (Admin)
+  /tasks       GET      List all tasks (Admin)
+  /tasks/my    GET      Get logged-in user's tasks
+  /tasks/:id   PATCH    Update task
+  /tasks/:id   DELETE   Delete task (Admin)
 
-User Module
-
-Endpoint	Method	Description
-
-/users	GET	Get all users (Admin)
-/users/me	GET	Get logged-in user info
-/users/:id/role	PATCH	Update user role
-
-
-Task Module
-
-Endpoint	Method	Description
-
-/tasks	POST	Create task (Admin)
-/tasks	GET	Get all tasks (Admin)
-/tasks/my	GET	Get logged-in user's tasks
-/tasks/:id	PATCH	Update task
-/tasks/:id	DELETE	Delete task (Admin)
-
+------------------------------------------------------------------------
 
 
----
 
-Running Tests
+## Contributing
 
-npm run test
-npm run test:e2e
-npm run test:cov
-
-
----
-
-Production Build
-
-npm run build
-npm run start:prod
-
-
----
-
-Contributing
-
-Contributions and feature requests are welcome.
+Contributions, issues, and feature requests are welcome!\
 Feel free to open an issue or submit a pull request.
 
+------------------------------------------------------------------------
 
----
-
-License
-
-This project is licensed under the MIT License.
-
+# MOHAMMAD ARSALAN RATHER 
