@@ -17,6 +17,7 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
+import { Throttle } from '@nestjs/throttler';
 
 // Extend Request for cookies
 interface RequestWithCookies extends Request {
@@ -34,7 +35,7 @@ interface RequestWithUser extends Request {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @ApiOperation({
     summary: 'Register a new user',
@@ -51,6 +52,8 @@ export class AuthController {
     type: RegisterResponseDto,
   })
   @Post('register')
+  // 3 requests per hour
+  @Throttle({ default: { ttl: 3600000, limit: 3 } })
   @HttpCode(201)
   register(@Body() data: RegisterDto) {
     return this.authService.register(data);
@@ -71,6 +74,8 @@ export class AuthController {
     type: LoginResponseDto,
   })
   @Post('login')
+  // 5 attempts per 15 minutes
+  @Throttle({ default: { ttl: 90000, limit: 5 } })
   @HttpCode(200)
   async login(
     @Body() data: LoginDto,
