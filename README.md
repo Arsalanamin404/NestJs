@@ -1,98 +1,209 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+Task Management System API (NestJS + Prisma + JWT Auth)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A production-ready, scalable, and enterprise-grade backend application built using NestJS.
+This project includes end-to-end authentication, authorization, user management, role-based access, and a complete task management workflow.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Features
 
-## Project setup
+Authentication & Authorization
 
-```bash
-$ npm install
-```
+Register, Login, Logout
 
-## Compile and run the project
+Access and Refresh Tokens
 
-```bash
-# development
-$ npm run start
+Secure token rotation
 
-# watch mode
-$ npm run start:dev
+Role-based access (Admin, User)
 
-# production mode
-$ npm run start:prod
-```
+Protected routes using Guards
 
-## Run tests
+Password hashing using bcrypt
 
-```bash
-# unit tests
-$ npm run test
 
-# e2e tests
-$ npm run test:e2e
+Task Management
 
-# test coverage
-$ npm run test:cov
-```
+Admin can create, update, and delete tasks
 
-## Deployment
+Admin can assign tasks to users
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Users can update their own task status
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Separate views for "My Tasks" and "All Tasks"
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Strict DTO validation and enums
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-## Resources
+User Management
 
-Check out a few resources that may come in handy when working with NestJS:
+Fetch all users (Admin only)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Update user roles
 
-## Support
+User profile endpoint /users/me
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Account deletion
 
-## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Engineering Practices
 
-## License
+Modular architecture
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Global exception filters
+
+Custom error responses
+
+Request throttling (Rate limiting)
+
+Strong TypeScript typing
+
+Swagger/OpenAPI documentation
+
+Production-ready folder structure
+
+
+
+---
+
+Tech Stack
+
+Layer	Technology
+
+Framework	NestJS
+ORM	Prisma
+Database	PostgreSQL
+Auth	JWT (Access + Refresh Tokens)
+Docs	Swagger/OpenAPI
+Validation	class-validator
+
+
+
+---
+
+Project Structure
+
+src/
+ ├── auth/
+ ├── users/
+ ├── tasks/
+ ├── common/
+ ├── prisma/
+ ├── main.ts
+ └── app.module.ts
+
+prisma/
+ ├── schema.prisma
+ └── migrations/
+
+
+---
+
+Getting Started
+
+1. Clone the Repository
+
+git clone https://github.com/Arsalanamin404/TaskManagementSystem_API
+cd TaskManagementSystem_API
+
+2. Install Dependencies
+
+npm install
+
+3. Setup Environment Variables
+
+Create an .env file:
+
+DATABASE_URL="postgresql://<user>:<password>@localhost:5432/tasks"
+JWT_SECRET_ACCESS="your_access_secret"
+JWT_SECRET_REFRESH="your_refresh_secret"
+JWT_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
+
+4. Run Prisma Migrations
+
+npx prisma migrate dev
+
+5. Start the Development Server
+
+npm run start:dev
+
+Server runs at:
+http://localhost:3000
+
+
+---
+
+API Documentation
+
+Swagger Documentation URL:
+http://localhost:3000/api
+
+
+---
+
+API Modules Overview
+
+Auth Module
+
+Endpoint	Method	Description
+
+/auth/register	POST	Create new user
+/auth/login	POST	Login user
+/auth/logout	POST	Logout
+/auth/refresh	POST	Refresh token
+
+
+User Module
+
+Endpoint	Method	Description
+
+/users	GET	Get all users (Admin)
+/users/me	GET	Get logged-in user info
+/users/:id/role	PATCH	Update user role
+
+
+Task Module
+
+Endpoint	Method	Description
+
+/tasks	POST	Create task (Admin)
+/tasks	GET	Get all tasks (Admin)
+/tasks/my	GET	Get logged-in user's tasks
+/tasks/:id	PATCH	Update task
+/tasks/:id	DELETE	Delete task (Admin)
+
+
+
+---
+
+Running Tests
+
+npm run test
+npm run test:e2e
+npm run test:cov
+
+
+---
+
+Production Build
+
+npm run build
+npm run start:prod
+
+
+---
+
+Contributing
+
+Contributions and feature requests are welcome.
+Feel free to open an issue or submit a pull request.
+
+
+---
+
+License
+
+This project is licensed under the MIT License.
+
