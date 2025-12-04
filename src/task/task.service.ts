@@ -19,6 +19,20 @@ export class TaskService {
     private readonly cache: CacheService,
   ) { }
 
+  private async invalidateTaskCache(taskId?: string, userId?: string) {
+    await this.cache.resetNamespace('tasks:all');
+    await this.cache.resetNamespace('tasks:titles');
+
+    if (taskId) {
+      await this.cache.resetNamespace(`tasks:${taskId}`);
+      await this.cache.resetNamespace(`tasks:status:${taskId}`);
+    }
+
+    if (userId) {
+      await this.cache.resetNamespace(`tasks:user:${userId}`);
+    }
+  }
+
   async createTask(data: CreateTaskDto) {
     if (data.assignedToUserId) {
       const user = await this.prisma.user.findUnique({
@@ -37,14 +51,7 @@ export class TaskService {
         assignedToUserId: data.assignedToUserId ?? null,
       },
     });
-
-    // if task is assigned, clear that user's task list cache
-    if (created_task.assignedToUserId) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', created_task.assignedToUserId),
-      );
-    }
-
+    await this.invalidateTaskCache(undefined, data.assignedToUserId);
     return { message: 'Task created successfully', task: created_task };
   }
 
@@ -79,22 +86,7 @@ export class TaskService {
       },
     });
 
-    await this.cache.delete(this.cache.buildKey('tasks:', data.taskId));
-    await this.cache.delete(this.cache.buildKey('tasks:status:', data.taskId));
-
-    // clear old assigned user's list cache (if existed)
-    if (task.assignedToUserId) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', task.assignedToUserId),
-      );
-    }
-
-    // clear new assigned user's list cache
-    if (data.assignedToUserId) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', data.assignedToUserId),
-      );
-    }
+    await this.invalidateTaskCache(data.taskId, data.assignedToUserId);
     return { message: 'Task assigned successfully', task: updatedTask };
   }
 
@@ -134,16 +126,8 @@ export class TaskService {
       },
     });
 
-    // clear per-task caches
-    await this.cache.delete(this.cache.buildKey('tasks:', taskId));
-    await this.cache.delete(this.cache.buildKey('tasks:status:', taskId));
+    await this.invalidateTaskCache(taskId, userId);
 
-    // clear this user's tasks list cache
-    if (task.assignedToUserId) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', task.assignedToUserId),
-      );
-    }
     return { message: 'Task status updated successfully', task: updatedTask };
   }
 
@@ -163,37 +147,25 @@ export class TaskService {
       3 * 60 * 1000,
     );
   }
-  async updateTask(id: string, data: UpdateTaskDto) {
-    // First check if exists
-    const task = await this.prisma.task.findUnique({ where: { id } });
+  async updateTask(taskId: string, data: UpdateTaskDto) {
+    const task = await this.prisma.task.findUnique({ where: { id: taskId } });
 
-    if (!task) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
-    }
+    if (!task) throw new NotFoundException(`Task with ID ${taskId} not found`);
 
     const updated = await this.prisma.task.update({
-      where: { id },
+      where: { id: taskId },
       data,
     });
 
-    // clear per-task caches
-    await this.cache.delete(this.cache.buildKey('tasks:', id));
-    await this.cache.delete(this.cache.buildKey('tasks:status:', id));
-
-    // clear old user's cache if task was assigned before
     if (task.assignedToUserId) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', task.assignedToUserId),
-      );
+      await this.invalidateTaskCache(taskId, task.assignedToUserId);
     }
 
     if (
       updated.assignedToUserId &&
       updated.assignedToUserId !== task.assignedToUserId
     ) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', updated.assignedToUserId),
-      );
+      await this.invalidateTaskCache(taskId, updated.assignedToUserId);
     }
 
     return { task: updated };
@@ -300,22 +272,18 @@ export class TaskService {
     );
   }
 
-  async deleteTask(id: string) {
-    const task = await this.prisma.task.findUnique({ where: { id } });
+  async deleteTask(taskId: string) {
+    const task = await this.prisma.task.findUnique({ where: { id: taskId } });
 
     if (!task) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new NotFoundException(`Task with ID ${taskId} not found`);
     }
-    const deletedTask = await this.prisma.task.delete({ where: { id } });
+    const deletedTask = await this.prisma.task.delete({
+      where: { id: taskId },
+    });
 
-    await this.cache.delete(this.cache.buildKey('tasks:', id));
-    await this.cache.delete(this.cache.buildKey('tasks:status:', id));
-
-    if (task.assignedToUserId) {
-      await this.cache.delete(
-        this.cache.buildKey('tasks:user:', task.assignedToUserId),
-      );
-    }
+    if (task.assignedToUserId)
+      await this.invalidateTaskCache(taskId, task.assignedToUserId);
 
     return { message: 'Task deleted successfully', task: deletedTask };
   }

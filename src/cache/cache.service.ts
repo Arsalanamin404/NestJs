@@ -1,10 +1,14 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
+import Redis from 'ioredis';
 
 @Injectable()
 export class CacheService {
-  constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) { }
+  constructor(
+    @Inject(CACHE_MANAGER) private cache: Cache,
+    @Inject('REDIS_CLIENT') private redis: Redis,
+  ) {}
 
   //cache values can be any type, and generics keep things type-safe, predictable, and clean.
   async get<T = any>(key: string): Promise<T | null> {
@@ -35,6 +39,30 @@ export class CacheService {
   }
 
   //  DELETE cache on write, READ from cache on read --> KEYV DOESNT SUPPORT RESET NAMESPACE NATIVELY
+  async resetNamespace(namespace: string): Promise<number> {
+    const pattern = `${namespace}:*`;
+    let cursor = '0';
+    let deletedCount = 0;
+
+    do {
+      const [newCursor, keys] = await this.redis.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        100,
+      );
+      cursor = newCursor;
+
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
+        deletedCount += keys.length;
+      }
+    } while (cursor !== '0');
+
+    return deletedCount;
+  }
+
   /*
    * Smart cache wrapper:
    * If key exists then return cached
