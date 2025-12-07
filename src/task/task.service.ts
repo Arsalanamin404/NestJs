@@ -24,7 +24,7 @@ export class TaskService {
     await this.cache.resetNamespace('tasks:titles');
 
     if (taskId) {
-      await this.cache.resetNamespace(`tasks:${taskId}`);
+      await this.cache.resetNamespace(`task:${taskId}`);
       await this.cache.resetNamespace(`tasks:status:${taskId}`);
     }
 
@@ -171,19 +171,19 @@ export class TaskService {
     return { task: updated };
   }
 
-  async getTaskById(id: string) {
-    const cacheKey = this.cache.buildKey('tasks:', id);
+  async getTaskById(taskId: string) {
+    const cacheKey = this.cache.buildKey('task:', taskId);
 
     return this.cache.wrap(
       cacheKey,
       async () => {
         const task = await this.prisma.task.findUnique({
-          where: { id },
+          where: { id: taskId },
           include: { assignedToUser: true },
         });
 
         if (!task) {
-          throw new NotFoundException(`Task with ID ${id} not found`);
+          throw new NotFoundException(`Task with ID ${taskId} not found`);
         }
         return task;
       },

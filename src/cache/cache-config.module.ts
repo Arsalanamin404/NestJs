@@ -3,6 +3,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheService } from './cache.service';
+import Redis from 'ioredis';
 
 @Global()
 @Module({
@@ -22,7 +23,19 @@ import { CacheService } from './cache.service';
     }),
   ],
 
-  providers: [CacheService],
-  exports: [CacheModule, CacheService],
+  providers: [
+    CacheService,
+    {
+      // this is because we are separately using the redis IO also,
+      // in order to use and implement reset_namespace functionality
+      provide: 'REDIS_CLIENT',
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const redisUrl = config.getOrThrow<string>('REDIS_URL');
+        return new Redis(redisUrl);
+      },
+    },
+  ],
+  exports: [CacheModule, CacheService, 'REDIS_CLIENT'],
 })
 export class CacheConfigModule { }

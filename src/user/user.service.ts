@@ -1,50 +1,79 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { CacheService } from 'src/cache/cache.service';
 import { Role } from 'src/generated/prisma/enums';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) { }
+  private async invalidateUserCache(userId?: string) {
+    await this.cache.resetNamespace('users:all');
 
-  async getProfile(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      include: { tasks: true },
-    });
-    if (!user) {
-      throw new NotFoundException(`User not found`);
+    if (userId) {
+      await this.cache.resetNamespace(`user:profile:${userId}`);
     }
-    const { password, ...sanitizedUser } = user;
-
-    return { profile: sanitizedUser };
   }
-  async deleteUserAccount(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+  async getProfile(userId: string) {
+    const cacheKey = this.cache.buildKey(`user:profile:`, userId);
+
+    return this.cache.wrap(
+      cacheKey,
+      async () => {
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          include: { tasks: true },
+        });
+        if (!user) {
+          throw new NotFoundException(`User not found`);
+        }
+        const { password, ...sanitizedUser } = user;
+
+        return { profile: sanitizedUser };
+      },
+      60 * 1000,
+    );
+  }
+  async deleteUserAccount(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    return this.prisma.user.delete({ where: { id } });
+    const deleted_user = this.prisma.user.delete({ where: { id: userId } });
+    await this.invalidateUserCache(userId);
+    return deleted_user;
   }
 
   async allUsers() {
-    const users = await this.prisma.user.findMany();
-    return users;
+    const cacheKey = this.cache.buildKey('users:', 'all');
+    return this.cache.wrap(
+      cacheKey,
+      async () => {
+        const users = await this.prisma.user.findMany();
+        return users;
+      },
+      5 * 60 * 1000,
+    );
   }
 
-  async changeRole(id: string, role: Role) {
+  async changeRole(userId: string, role: Role) {
     const user = await this.prisma.user.findUnique({
-      where: { id },
+      where: { id: userId },
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    await this.prisma.user.update({
-      where: { id },
+    const updated_user = await this.prisma.user.update({
+      where: { id: userId },
       data: { role },
     });
 
-    return { message: 'Role changed successfully' };
+    await this.invalidateUserCache(userId);
+
+    return { message: 'Role changed successfully', updated_user };
   }
 }
