@@ -151,7 +151,7 @@ export class AuthController {
       path: '/',
     });
 
-    return { accessToken };
+    return { message: 'Token generated succesfully', token: accessToken };
   }
 
   @ApiOperation({
